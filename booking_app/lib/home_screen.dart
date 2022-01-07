@@ -1,5 +1,6 @@
 import 'package:booking_app/add_open_hours_screen.dart';
 import 'package:booking_app/colors.dart';
+import 'package:booking_app/database.dart';
 import 'package:booking_app/models/open_hours_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   GoogleSignInAccount? _currentUser;
 
   final _openHoursStream = FirebaseFirestore.instance
-      .collection('open-hours')
+      .collection(openHoursCollection)
       .withConverter<OpenHours>(
         fromFirestore: (snapshot, _) => OpenHours.fromJson(snapshot.data()!),
         toFirestore: (openHours, _) => openHours.toJson(),

@@ -35,12 +35,33 @@ class OpenHours {
   }
 
   String getDateDisplayString() {
-    final DateFormat formatter = DateFormat('MM/dd');
-    return formatter.format(date);
+    return buildDateDisplayString(date);
   }
 
   String getDayDisplayString() {
-    switch (date.weekday) {
+    return buildDayDisplayString(date);
+  }
+
+  String getStartTimeDisplayString() {
+    return buildTimeDisplayString(startTime);
+  }
+
+  String getEndTimeDisplayString() {
+    return buildTimeDisplayString(endTime);
+  }
+
+  static String _padTwoZeros(int number) {
+    final NumberFormat formatter = NumberFormat('00');
+    return formatter.format(number);
+  }
+
+  static String buildDateDisplayString(DateTime dateTime) {
+    final DateFormat formatter = DateFormat('MM/dd');
+    return formatter.format(dateTime);
+  }
+
+  static String buildDayDisplayString(DateTime dateTime) {
+    switch (dateTime.weekday) {
       case 1:
         return 'MON';
       case 2:
@@ -60,16 +81,7 @@ class OpenHours {
     }
   }
 
-  String getStartTimeDisplayString() {
-    return '${_padTwoZeros(startTime.hour)}:${_padTwoZeros(startTime.minute)}';
-  }
-
-  String getEndTimeDisplayString() {
-    return '${_padTwoZeros(endTime.hour)}:${_padTwoZeros(endTime.minute)}';
-  }
-
-  String _padTwoZeros(int number) {
-    final NumberFormat formatter = NumberFormat('00');
-    return formatter.format(number);
+  static String buildTimeDisplayString(TimeOfDay timeOfDay) {
+    return '${_padTwoZeros(timeOfDay.hour)}:${_padTwoZeros(timeOfDay.minute)}';
   }
 }

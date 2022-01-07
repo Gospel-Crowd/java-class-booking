@@ -1,7 +1,8 @@
+import 'package:booking_app/colors.dart';
+import 'package:booking_app/database.dart';
 import 'package:booking_app/models/open_hours_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class AddOpenHoursScreen extends StatefulWidget {
   const AddOpenHoursScreen({Key? key}) : super(key: key);
@@ -11,10 +12,8 @@ class AddOpenHoursScreen extends StatefulWidget {
 }
 
 class _AddOpenHoursScreenState extends State<AddOpenHoursScreen> {
-  final DateFormat formatter = DateFormat('yyyy-MM-dd');
-
   final CollectionReference _openHoursRef = FirebaseFirestore.instance
-      .collection('open-hours')
+      .collection(openHoursCollection)
       .withConverter<OpenHours>(
         fromFirestore: (snapshot, _) => OpenHours.fromJson(snapshot.data()!),
         toFirestore: (openHours, _) => openHours.toJson(),
@@ -22,121 +21,147 @@ class _AddOpenHoursScreenState extends State<AddOpenHoursScreen> {
 
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _startTime = const TimeOfDay(hour: 9, minute: 0);
-  TimeOfDay _endTime = const TimeOfDay(hour: 21, minute: 0);
-  List<TimeOfDay> _availableTimes = [];
-
-  List<TimeOfDay> _calculateAvailableTimes(
-      TimeOfDay startTime, TimeOfDay endTime) {
-    List<TimeOfDay> availableTimes = [];
-    for (var i = startTime.hour; i <= endTime.hour; i++) {
-      availableTimes.add(TimeOfDay(hour: i, minute: 0));
-      if (i != endTime.hour) {
-        availableTimes.add(TimeOfDay(hour: i, minute: 30));
-      }
-    }
-    return availableTimes;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    _availableTimes = _calculateAvailableTimes(_startTime, _endTime);
-  }
+  TimeOfDay _endTime = const TimeOfDay(hour: 11, minute: 0);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Open Hours'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              _openHoursRef
-                  .add(OpenHours(
-                    date: _selectedDate,
-                    startTime: _startTime,
-                    endTime: _endTime,
-                  ))
-                  .then((value) => Navigator.pop(context))
-                  .catchError((error) {
-                Navigator.pop(context);
-              });
-            },
-            icon: const Icon(Icons.done),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Row(
-            children: [
-              const Text('Date'),
-              const SizedBox(width: 16),
-              Text(formatter.format(_selectedDate)),
-            ],
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final DateTime? picked = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2022),
-                lastDate: DateTime(2023),
-              );
+      appBar: _buildAppBar(context),
+      body: _buildBody(),
+    );
+  }
 
-              if (picked != null) {
-                setState(() {
-                  _selectedDate = picked;
-                });
-              }
-            },
-            child: const Text('Select'),
+  Widget _buildBody() {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: primaryColor,
           ),
-          Row(
-            children: [
-              const Text('Start Time'),
-              const SizedBox(width: 16),
-              Text('${_startTime.hour}:${_startTime.minute}'),
-            ],
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildDatePicker(),
+                const VerticalDivider(width: 16, color: primaryColor),
+                _buildStartTimePicker(),
+                const Text(
+                  '-',
+                  style: TextStyle(fontSize: 32),
+                ),
+                _buildEndTimePicker(),
+              ],
+            ),
           ),
-          DropdownButton(
-            items: _availableTimes
-                .map<DropdownMenuItem<TimeOfDay>>((TimeOfDay value) {
-              return DropdownMenuItem<TimeOfDay>(
-                value: value,
-                child: Text('${value.hour}:${value.minute}'),
-              );
-            }).toList(),
-            onChanged: (TimeOfDay? newValue) {
-              setState(() {
-                _startTime = newValue!;
-              });
-            },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEndTimePicker() {
+    return GestureDetector(
+      child: Text(
+        OpenHours.buildTimeDisplayString(_endTime),
+        style: const TextStyle(fontSize: 32),
+      ),
+      onTap: () async {
+        final TimeOfDay? pickedEndTime = await showTimePicker(
+          context: context,
+          initialTime: _endTime,
+        );
+
+        if (pickedEndTime != null) {
+          setState(() {
+            _endTime = pickedEndTime;
+          });
+        }
+      },
+    );
+  }
+
+  Widget _buildStartTimePicker() {
+    return GestureDetector(
+      child: Text(
+        OpenHours.buildTimeDisplayString(_startTime),
+        style: const TextStyle(fontSize: 32),
+      ),
+      onTap: () async {
+        final TimeOfDay? pickedStartTime = await showTimePicker(
+          context: context,
+          initialTime: _startTime,
+        );
+
+        if (pickedStartTime != null) {
+          setState(() {
+            _startTime = pickedStartTime;
+            _endTime = pickedStartTime.replacing(
+              hour: pickedStartTime.hour + 2,
+            );
+          });
+        }
+      },
+    );
+  }
+
+  Widget _buildDatePicker() {
+    return GestureDetector(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            OpenHours.buildDateDisplayString(_selectedDate),
+            style: const TextStyle(fontSize: 32),
           ),
-          Row(
-            children: [
-              const Text('End Time'),
-              const SizedBox(width: 16),
-              Text('${_endTime.hour}:${_endTime.minute}'),
-            ],
-          ),
-          DropdownButton(
-            items: _availableTimes
-                .map<DropdownMenuItem<TimeOfDay>>((TimeOfDay value) {
-              return DropdownMenuItem<TimeOfDay>(
-                value: value,
-                child: Text('${value.hour}:${value.minute}'),
-              );
-            }).toList(),
-            onChanged: (TimeOfDay? newValue) {
-              setState(() {
-                _endTime = newValue!;
-              });
-            },
+          const SizedBox(height: 4),
+          Text(
+            OpenHours.buildDayDisplayString(_selectedDate),
+            style: const TextStyle(fontSize: 24),
           ),
         ],
       ),
+      onTap: () async {
+        final DateTime? pickedDate = await showDatePicker(
+          context: context,
+          initialDate: _selectedDate,
+          firstDate: DateTime(2022),
+          lastDate: DateTime(2023),
+        );
+
+        if (pickedDate != null) {
+          setState(() {
+            _selectedDate = pickedDate;
+          });
+        }
+      },
+    );
+  }
+
+  AppBar _buildAppBar(BuildContext context) {
+    return AppBar(
+      title: const Text('Add Open Hours'),
+      actions: [
+        IconButton(
+          onPressed: () {
+            _openHoursRef
+                .add(OpenHours(
+                  date: _selectedDate,
+                  startTime: _startTime,
+                  endTime: _endTime,
+                ))
+                .then((value) => Navigator.pop(context))
+                .catchError((error) {
+              Navigator.pop(context);
+            });
+          },
+          icon: const Icon(Icons.done),
+        ),
+      ],
     );
   }
 }
