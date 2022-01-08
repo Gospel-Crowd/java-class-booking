@@ -6,19 +6,22 @@ class OpenHours {
   final DateTime date;
   final TimeOfDay startTime;
   final TimeOfDay endTime;
+  final String documentId;
 
   OpenHours({
     required this.date,
     required this.startTime,
     required this.endTime,
+    required this.documentId,
   });
 
-  OpenHours.fromJson(Map<String, dynamic>? json)
+  OpenHours.fromJson(Map<String, dynamic>? json, String documentId)
       : this(
           date: DateTime.fromMicrosecondsSinceEpoch(
               (json?['date']! as Timestamp).microsecondsSinceEpoch),
           startTime: _parseTimeOfDayString(json?['startTime'] as String),
           endTime: _parseTimeOfDayString(json?['endTime'] as String),
+          documentId: documentId,
         );
 
   static TimeOfDay _parseTimeOfDayString(String str) {

@@ -25,11 +25,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final _openHoursStream = FirebaseFirestore.instance
       .collection(openHoursCollection)
+      .orderBy('date')
       .withConverter<OpenHours>(
-        fromFirestore: (snapshot, _) => OpenHours.fromJson(snapshot.data()!),
+        fromFirestore: (snapshot, _) =>
+            OpenHours.fromJson(snapshot.data()!, snapshot.id),
         toFirestore: (openHours, _) => openHours.toJson(),
       )
       .snapshots();
+
+  final CollectionReference _openHoursRef =
+      FirebaseFirestore.instance.collection(openHoursCollection);
 
   Future<void> _handleSignIn() async {
     try {
@@ -177,7 +182,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: const Icon(Icons.edit),
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () async {
+                  await _openHoursRef.doc(openHours.documentId).delete();
+                },
                 icon: const Icon(Icons.delete),
               ),
             ],

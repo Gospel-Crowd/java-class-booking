@@ -3,6 +3,7 @@ import 'package:booking_app/database.dart';
 import 'package:booking_app/models/open_hours_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class AddOpenHoursScreen extends StatefulWidget {
   const AddOpenHoursScreen({Key? key}) : super(key: key);
@@ -15,7 +16,8 @@ class _AddOpenHoursScreenState extends State<AddOpenHoursScreen> {
   final CollectionReference _openHoursRef = FirebaseFirestore.instance
       .collection(openHoursCollection)
       .withConverter<OpenHours>(
-        fromFirestore: (snapshot, _) => OpenHours.fromJson(snapshot.data()!),
+        fromFirestore: (snapshot, _) =>
+            OpenHours.fromJson(snapshot.data()!, snapshot.id),
         toFirestore: (openHours, _) => openHours.toJson(),
       );
 
@@ -44,20 +46,18 @@ class _AddOpenHoursScreenState extends State<AddOpenHoursScreen> {
         ),
         child: Padding(
           padding: const EdgeInsets.all(8),
-          child: Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildDatePicker(),
-                const VerticalDivider(width: 16, color: primaryColor),
-                _buildStartTimePicker(),
-                const Text(
-                  '-',
-                  style: TextStyle(fontSize: 32),
-                ),
-                _buildEndTimePicker(),
-              ],
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildDatePicker(),
+              const VerticalDivider(width: 16, color: primaryColor),
+              _buildStartTimePicker(),
+              const Text(
+                '-',
+                style: TextStyle(fontSize: 32),
+              ),
+              _buildEndTimePicker(),
+            ],
           ),
         ),
       ),
@@ -148,11 +148,14 @@ class _AddOpenHoursScreenState extends State<AddOpenHoursScreen> {
       actions: [
         IconButton(
           onPressed: () {
+            var uuid = const Uuid();
+
             _openHoursRef
                 .add(OpenHours(
                   date: _selectedDate,
                   startTime: _startTime,
                   endTime: _endTime,
+                  documentId: uuid.v4(),
                 ))
                 .then((value) => Navigator.pop(context))
                 .catchError((error) {
