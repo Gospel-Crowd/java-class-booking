@@ -5,14 +5,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
-class AddOpenHoursScreen extends StatefulWidget {
-  const AddOpenHoursScreen({Key? key}) : super(key: key);
+class AddEditOpenHoursScreen extends StatefulWidget {
+  const AddEditOpenHoursScreen({Key? key, required this.openHours})
+      : super(key: key);
+
+  final OpenHours openHours;
 
   @override
-  _AddOpenHoursScreenState createState() => _AddOpenHoursScreenState();
+  _AddEditOpenHoursScreenState createState() => _AddEditOpenHoursScreenState();
 }
 
-class _AddOpenHoursScreenState extends State<AddOpenHoursScreen> {
+class _AddEditOpenHoursScreenState extends State<AddEditOpenHoursScreen> {
   final CollectionReference _openHoursRef = FirebaseFirestore.instance
       .collection(openHoursCollection)
       .withConverter<OpenHours>(
@@ -21,9 +24,18 @@ class _AddOpenHoursScreenState extends State<AddOpenHoursScreen> {
         toFirestore: (openHours, _) => openHours.toJson(),
       );
 
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay _startTime = const TimeOfDay(hour: 9, minute: 0);
-  TimeOfDay _endTime = const TimeOfDay(hour: 11, minute: 0);
+  late DateTime _selectedDate;
+  late TimeOfDay _startTime;
+  late TimeOfDay _endTime;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _selectedDate = widget.openHours.date;
+    _startTime = widget.openHours.startTime;
+    _endTime = widget.openHours.endTime;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -150,19 +162,35 @@ class _AddOpenHoursScreenState extends State<AddOpenHoursScreen> {
           onPressed: () {
             var uuid = const Uuid();
 
-            _openHoursRef
-                .add(OpenHours(
-                  date: _selectedDate,
-                  startTime: _startTime,
-                  endTime: _endTime,
-                  documentId: uuid.v4(),
-                ))
-                .then((value) => Navigator.pop(context))
-                .catchError((error) {
-              Navigator.pop(context);
-            });
+            if (widget.openHours.documentId == '') {
+              _openHoursRef
+                  .add(OpenHours(
+                    date: _selectedDate,
+                    startTime: _startTime,
+                    endTime: _endTime,
+                    documentId: uuid.v4(),
+                  ))
+                  .then((value) => Navigator.pop(context))
+                  .catchError((error) {
+                Navigator.pop(context);
+              });
+            } else {
+              _openHoursRef
+                  .doc(widget.openHours.documentId)
+                  .set(OpenHours(
+                    date: _selectedDate,
+                    startTime: _startTime,
+                    endTime: _endTime,
+                    documentId: widget.openHours.documentId,
+                  ))
+                  .then((value) => Navigator.pop(context))
+                  .catchError((error) {
+                Navigator.pop(context);
+              });
+            }
           },
           icon: const Icon(Icons.done),
+          iconSize: 32,
         ),
       ],
     );

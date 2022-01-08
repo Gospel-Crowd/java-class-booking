@@ -1,4 +1,4 @@
-import 'package:booking_app/add_open_hours_screen.dart';
+import 'package:booking_app/screens/add_edit_open_hours_screen.dart';
 import 'package:booking_app/colors.dart';
 import 'package:booking_app/database.dart';
 import 'package:booking_app/models/open_hours_model.dart';
@@ -25,7 +25,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final _openHoursStream = FirebaseFirestore.instance
       .collection(openHoursCollection)
-      .orderBy('date')
       .withConverter<OpenHours>(
         fromFirestore: (snapshot, _) =>
             OpenHours.fromJson(snapshot.data()!, snapshot.id),
@@ -62,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return _currentUser != null ? _buildHomeView() : _buildLoginView();
   }
 
-  Scaffold _buildHomeView() {
+  Widget _buildHomeView() {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -84,16 +83,29 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      floatingActionButton: IconButton(
-        icon: const Icon(Icons.add_circle),
-        iconSize: 60,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddOpenHoursScreen()),
-          );
-        },
-      ),
+      floatingActionButton: _buildAddOpenHoursButton(),
+    );
+  }
+
+  Widget _buildAddOpenHoursButton() {
+    return IconButton(
+      icon: const Icon(Icons.add_circle),
+      iconSize: 60,
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AddEditOpenHoursScreen(
+              openHours: OpenHours(
+                documentId: '',
+                date: DateTime.now(),
+                startTime: const TimeOfDay(hour: 9, minute: 0),
+                endTime: const TimeOfDay(hour: 11, minute: 0),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -120,13 +132,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ));
 
-        List<Widget> openHoursItems =
-            snapshot.data!.docs.map((DocumentSnapshot document) {
-          return _buildOpenHoursItem(document.data() as OpenHours);
-        }).toList();
+        List<OpenHours> openHoursDataItems =
+            _convertToOpenHoursList(snapshot.data!.docs);
 
-        for (var item in openHoursItems) {
-          widgets.add(item);
+        for (var item in openHoursDataItems) {
+          widgets.add(_buildOpenHoursItem(item));
           widgets.add(const SizedBox(height: 8));
         }
 
@@ -135,6 +145,29 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  List<OpenHours> _convertToOpenHoursList(
+    List<QueryDocumentSnapshot<Object?>> docs,
+  ) {
+    List<OpenHours> openHoursDataItems = docs.map((DocumentSnapshot document) {
+      return document.data() as OpenHours;
+    }).toList();
+
+    openHoursDataItems.sort((a, b) {
+      var dateDiff =
+          a.getDateDisplayString().compareTo(b.getDateDisplayString());
+
+      if (dateDiff == 0) {
+        return a
+            .getStartTimeDisplayString()
+            .compareTo(b.getStartTimeDisplayString());
+      }
+
+      return dateDiff;
+    });
+
+    return openHoursDataItems;
   }
 
   Widget _buildOpenHoursItem(OpenHours openHours) {
@@ -178,7 +211,16 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AddEditOpenHoursScreen(
+                        openHours: openHours,
+                      ),
+                    ),
+                  );
+                },
                 icon: const Icon(Icons.edit),
               ),
               IconButton(
