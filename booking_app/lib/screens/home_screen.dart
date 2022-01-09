@@ -97,7 +97,6 @@ class _HomeScreenState extends State<HomeScreen> {
           MaterialPageRoute(
             builder: (context) => AddEditOpenHoursScreen(
               openHours: OpenHours(
-                documentId: '',
                 date: DateTime.now(),
                 startTime: const TimeOfDay(hour: 9, minute: 0),
                 endTime: const TimeOfDay(hour: 11, minute: 0),

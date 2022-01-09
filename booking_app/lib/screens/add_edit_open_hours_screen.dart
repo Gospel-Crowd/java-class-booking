@@ -168,7 +168,6 @@ class _AddEditOpenHoursScreenState extends State<AddEditOpenHoursScreen> {
                     date: _selectedDate,
                     startTime: _startTime,
                     endTime: _endTime,
-                    documentId: uuid.v4(),
                   ))
                   .then((value) => Navigator.pop(context))
                   .catchError((error) {

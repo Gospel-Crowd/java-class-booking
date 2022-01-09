@@ -6,13 +6,13 @@ class OpenHours {
   final DateTime date;
   final TimeOfDay startTime;
   final TimeOfDay endTime;
-  final String documentId;
+  late String documentId;
 
   OpenHours({
     required this.date,
     required this.startTime,
     required this.endTime,
-    required this.documentId,
+    this.documentId = '',
   });
 
   OpenHours.fromJson(Map<String, dynamic>? json, String documentId)
