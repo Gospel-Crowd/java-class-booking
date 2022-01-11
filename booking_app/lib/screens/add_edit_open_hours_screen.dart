@@ -3,7 +3,6 @@ import 'package:booking_app/database.dart';
 import 'package:booking_app/models/open_hours_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 
 class AddEditOpenHoursScreen extends StatefulWidget {
   const AddEditOpenHoursScreen({Key? key, required this.openHours})
@@ -160,8 +159,6 @@ class _AddEditOpenHoursScreenState extends State<AddEditOpenHoursScreen> {
       actions: [
         IconButton(
           onPressed: () {
-            var uuid = const Uuid();
-
             if (widget.openHours.documentId == '') {
               _openHoursRef
                   .add(OpenHours(

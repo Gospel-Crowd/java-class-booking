@@ -1,7 +1,8 @@
-import 'package:booking_app/screens/add_edit_open_hours_screen.dart';
 import 'package:booking_app/colors.dart';
 import 'package:booking_app/database.dart';
+import 'package:booking_app/main.dart';
 import 'package:booking_app/models/open_hours_model.dart';
+import 'package:booking_app/screens/add_edit_open_hours_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -51,6 +52,9 @@ class _HomeScreenState extends State<HomeScreen> {
     _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
       setState(() {
         _currentUser = account;
+
+        // Mark the user as admin if the user email is samuel.anudeep@gmail.com
+        isAdmin = account?.id == '104008690092105020153';
       });
     });
     _googleSignIn.signInSilently();
@@ -62,28 +66,58 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomeView() {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
+    return isAdmin
+        ? _buildAdminHomeView()
+        : Scaffold(
+            appBar: AppBar(
+              title: const Text('Home'),
+            ),
+            body: _buildBookings(),
+            drawer: _buildDrawer(),
+          );
+  }
+
+  Widget _buildDrawer() {
+    return Drawer(
+      child: ListView(
+        children: [
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              color: Colors.blue,
+            ),
+            child: Text(_currentUser!.email),
+          ),
+          ListTile(
+            title: const Text('Logout'),
+            onTap: _handleSignOut,
+          ),
+        ],
       ),
-      body: _buildHomeBody(),
-      drawer: Drawer(
-        child: ListView(
+    );
+  }
+
+  Widget _buildAdminHomeView() {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Home'),
+          bottom: const TabBar(
+            tabs: [
+              Tab(icon: Icon(Icons.schedule)),
+              Tab(icon: Icon(Icons.library_books)),
+            ],
+          ),
+        ),
+        body: TabBarView(
           children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text(_currentUser!.email),
-            ),
-            ListTile(
-              title: const Text('Logout'),
-              onTap: _handleSignOut,
-            ),
+            _buildOpenItemsListing(),
+            _buildBookings(),
           ],
         ),
+        drawer: _buildDrawer(),
+        floatingActionButton: _buildAddOpenHoursButton(),
       ),
-      floatingActionButton: _buildAddOpenHoursButton(),
     );
   }
 
@@ -108,7 +142,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHomeBody() {
+  Widget _buildBookings() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Text(
+        'BOOKINGS',
+        style: TextStyle(fontSize: 20),
+      ),
+    );
+  }
+
+  StreamBuilder<QuerySnapshot<Object?>> _buildOpenItemsListing() {
     return StreamBuilder<QuerySnapshot>(
       stream: _openHoursStream,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
