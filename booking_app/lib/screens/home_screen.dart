@@ -1,6 +1,8 @@
 import 'package:booking_app/main.dart';
 import 'package:booking_app/models/open_hours_model.dart';
 import 'package:booking_app/screens/add_edit_open_hours_screen.dart';
+import 'package:booking_app/screens/new_booking_screen.dart';
+import 'package:booking_app/widgets/bookings_listing.dart';
 import 'package:booking_app/widgets/open_hours_listing.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -40,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _currentUser = account;
 
         // Mark the user as admin if the user email is samuel.anudeep@gmail.com
-        isAdmin = account?.id != '104008690092105020153';
+        isAdmin = account?.id == '104008690092105020153';
       });
     });
     _googleSignIn.signInSilently();
@@ -58,8 +60,20 @@ class _HomeScreenState extends State<HomeScreen> {
             appBar: AppBar(
               title: const Text('Home'),
             ),
-            body: const Bookings(),
+            body: const BookingsListing(),
             drawer: _buildDrawer(),
+            floatingActionButton: IconButton(
+              icon: const Icon(Icons.add_circle),
+              iconSize: 60,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NewBookingScreen(),
+                  ),
+                );
+              },
+            ),
           );
   }
 
@@ -98,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
         body: const TabBarView(
           children: [
             OpenHoursListing(),
-            Bookings(),
+            BookingsListing(),
           ],
         ),
         drawer: _buildDrawer(),

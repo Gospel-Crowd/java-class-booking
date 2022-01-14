@@ -131,7 +131,7 @@ class _AddEditOpenHoursScreenState extends State<AddEditOpenHoursScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            OpenHours.buildDayDisplayString(_selectedDate),
+            OpenHours.buildDayDisplayStringEN(_selectedDate),
             style: const TextStyle(fontSize: 24),
           ),
         ],

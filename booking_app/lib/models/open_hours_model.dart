@@ -37,12 +37,14 @@ class OpenHours {
     };
   }
 
-  String getDateDisplayString() {
-    return buildDateDisplayString(date);
+  String getDateDisplayString({Locale locale = const Locale('en')}) {
+    return buildDateDisplayString(date, locale: locale);
   }
 
-  String getDayDisplayString() {
-    return buildDayDisplayString(date);
+  String getDayDisplayString({Locale locale = const Locale('en')}) {
+    return locale.languageCode == 'jp'
+        ? buildDayDisplayStringJP(date)
+        : buildDayDisplayStringEN(date);
   }
 
   String getStartTimeDisplayString() {
@@ -58,12 +60,17 @@ class OpenHours {
     return formatter.format(number);
   }
 
-  static String buildDateDisplayString(DateTime dateTime) {
-    final DateFormat formatter = DateFormat('MM/dd');
+  static String buildDateDisplayString(
+    DateTime dateTime, {
+    Locale locale = const Locale('en'),
+  }) {
+    final DateFormat formatter = locale.languageCode == 'jp'
+        ? DateFormat('MM月dd日')
+        : DateFormat('MM/dd');
     return formatter.format(dateTime);
   }
 
-  static String buildDayDisplayString(DateTime dateTime) {
+  static String buildDayDisplayStringEN(DateTime dateTime) {
     switch (dateTime.weekday) {
       case 1:
         return 'MON';
@@ -79,6 +86,27 @@ class OpenHours {
         return 'SAT';
       case 7:
         return 'SUN';
+      default:
+        return '';
+    }
+  }
+
+  static String buildDayDisplayStringJP(DateTime dateTime) {
+    switch (dateTime.weekday) {
+      case 1:
+        return '月曜日';
+      case 2:
+        return '火曜日';
+      case 3:
+        return '水曜日';
+      case 4:
+        return '木曜日';
+      case 5:
+        return '金曜日';
+      case 6:
+        return '土曜日';
+      case 7:
+        return '日曜日';
       default:
         return '';
     }
