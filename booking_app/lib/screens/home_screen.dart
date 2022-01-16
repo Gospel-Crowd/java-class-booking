@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ? _buildAdminHomeView()
         : Scaffold(
             appBar: AppBar(
-              title: const Text('Home'),
+              title: const Text('ホーム'),
             ),
             body: const BookingsListing(),
             drawer: _buildDrawer(),
@@ -66,10 +66,13 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.add_circle),
               iconSize: 60,
               onPressed: () {
+                if (_currentUser != null) {}
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const NewBookingScreen(),
+                    builder: (context) => NewBookingScreen(
+                      signedInUser: _currentUser,
+                    ),
                   ),
                 );
               },

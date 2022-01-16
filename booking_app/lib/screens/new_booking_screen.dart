@@ -1,11 +1,17 @@
 import 'package:booking_app/colors.dart';
 import 'package:booking_app/database.dart';
+import 'package:booking_app/models/booking_model.dart';
 import 'package:booking_app/models/open_hours_model.dart';
+import 'package:booking_app/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class NewBookingScreen extends StatefulWidget {
-  const NewBookingScreen({Key? key}) : super(key: key);
+  const NewBookingScreen({Key? key, required this.signedInUser})
+      : super(key: key);
+
+  final GoogleSignInAccount? signedInUser;
 
   @override
   _NewBookingScreenState createState() => _NewBookingScreenState();
@@ -20,6 +26,14 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
         toFirestore: (openHours, _) => openHours.toJson(),
       )
       .snapshots();
+
+  final CollectionReference _bookingsRef = FirebaseFirestore.instance
+      .collection(bookingsCollection)
+      .withConverter<Booking>(
+        fromFirestore: (snapshot, _) =>
+            Booking.fromJson(snapshot.data()!, snapshot.id),
+        toFirestore: (booking, _) => booking.toJson(),
+      );
 
   int _convertToTotalMinutes(TimeOfDay timeOfDay) =>
       timeOfDay.hour * 60 + timeOfDay.minute;
@@ -44,27 +58,48 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
       appBar: AppBar(
         title: const Text('新規予約'),
         actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.done),
-            iconSize: 32,
-          ),
+          _buildDoneButton(context),
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _openHoursStream,
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (snapshot.hasError) {
-            return const Text('Something went wrong');
+            return const Text('エラーが出ました');
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Text("Loading");
+            return const Text("ローディング中");
           }
 
           return _buildBody(_convertToOpenHoursList(snapshot.data!.docs));
         },
       ),
+    );
+  }
+
+  Widget _buildDoneButton(BuildContext context) {
+    return IconButton(
+      onPressed: () {
+        _bookingsRef
+            .add(Booking(
+              userId: widget.signedInUser!.id,
+              userDisplayName: widget.signedInUser!.displayName!,
+              userMailId: widget.signedInUser!.email,
+              date: _selectedDate,
+              startTime: _selectedStartTime,
+              endTime: TimeOfDay(
+                hour: (_selectedStartTime.hour + 2) % 24,
+                minute: _selectedStartTime.minute,
+              ),
+            ))
+            .then((value) => Navigator.pop(context))
+            .catchError((error) {
+          Navigator.pop(context);
+        });
+      },
+      icon: const Icon(Icons.done),
+      iconSize: 32,
     );
   }
 
@@ -109,6 +144,7 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
         children: gridViewWidgets,
         shrinkWrap: true,
         childAspectRatio: 1.5,
+        physics: const NeverScrollableScrollPhysics(),
       ),
     );
   }
@@ -133,7 +169,7 @@ class _NewBookingScreenState extends State<NewBookingScreen> {
           borderRadius: const BorderRadius.all(Radius.circular(8)),
         ),
         child: Text(
-          OpenHours.buildTimeDisplayString(timeOfDay),
+          buildTimeDisplayString(timeOfDay),
           style: const TextStyle(fontSize: 16),
         ),
       ),

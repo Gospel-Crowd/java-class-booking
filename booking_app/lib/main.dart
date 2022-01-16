@@ -11,16 +11,16 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  runApp(const Bookings());
+  runApp(const BookingApp());
 }
 
-class Bookings extends StatelessWidget {
-  const Bookings({Key? key}) : super(key: key);
+class BookingApp extends StatelessWidget {
+  const BookingApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Bookings',
+      title: 'Booking App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),

@@ -1,6 +1,7 @@
 import 'package:booking_app/colors.dart';
 import 'package:booking_app/database.dart';
 import 'package:booking_app/models/open_hours_model.dart';
+import 'package:booking_app/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -78,7 +79,7 @@ class _AddEditOpenHoursScreenState extends State<AddEditOpenHoursScreen> {
   Widget _buildEndTimePicker() {
     return GestureDetector(
       child: Text(
-        OpenHours.buildTimeDisplayString(_endTime),
+        buildTimeDisplayString(_endTime),
         style: const TextStyle(fontSize: 32),
       ),
       onTap: () async {
@@ -99,7 +100,7 @@ class _AddEditOpenHoursScreenState extends State<AddEditOpenHoursScreen> {
   Widget _buildStartTimePicker() {
     return GestureDetector(
       child: Text(
-        OpenHours.buildTimeDisplayString(_startTime),
+        buildTimeDisplayString(_startTime),
         style: const TextStyle(fontSize: 32),
       ),
       onTap: () async {
@@ -126,12 +127,12 @@ class _AddEditOpenHoursScreenState extends State<AddEditOpenHoursScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            OpenHours.buildDateDisplayString(_selectedDate),
+            buildDateDisplayString(_selectedDate),
             style: const TextStyle(fontSize: 32),
           ),
           const SizedBox(height: 4),
           Text(
-            OpenHours.buildDayDisplayStringEN(_selectedDate),
+            buildDayDisplayStringEN(_selectedDate),
             style: const TextStyle(fontSize: 24),
           ),
         ],
