@@ -1,7 +1,8 @@
 import 'package:booking_app/main.dart';
+import 'package:booking_app/models/booking_model.dart';
 import 'package:booking_app/models/open_hours_model.dart';
+import 'package:booking_app/screens/add_edit_booking_screen.dart';
 import 'package:booking_app/screens/add_edit_open_hours_screen.dart';
-import 'package:booking_app/screens/new_booking_screen.dart';
 import 'package:booking_app/widgets/bookings_listing.dart';
 import 'package:booking_app/widgets/open_hours_listing.dart';
 import 'package:flutter/material.dart';
@@ -60,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
             appBar: AppBar(
               title: const Text('ホーム'),
             ),
-            body: const BookingsListing(),
+            body: BookingsListing(signedInUser: _currentUser),
             drawer: _buildDrawer(),
             floatingActionButton: IconButton(
               icon: const Icon(Icons.add_circle),
@@ -70,7 +71,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => NewBookingScreen(
+                    builder: (context) => AddEditBookingScreen(
+                      booking: Booking(
+                        userId: _currentUser!.id,
+                        userDisplayName: _currentUser!.displayName!,
+                        userMailId: _currentUser!.email,
+                        date: DateTime.now(),
+                        startTime: const TimeOfDay(hour: 9, minute: 0),
+                        endTime: const TimeOfDay(hour: 11, minute: 0),
+                      ),
                       signedInUser: _currentUser,
                     ),
                   ),
@@ -88,10 +97,13 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: const BoxDecoration(
               color: Colors.blue,
             ),
-            child: Text(_currentUser!.email),
+            child: Text(
+              _currentUser!.email,
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
           ListTile(
-            title: const Text('Logout'),
+            title: const Text('ログアウト'),
             onTap: _handleSignOut,
           ),
         ],

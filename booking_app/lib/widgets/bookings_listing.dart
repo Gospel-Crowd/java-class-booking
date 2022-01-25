@@ -1,12 +1,16 @@
 import 'package:booking_app/colors.dart';
 import 'package:booking_app/database.dart';
 import 'package:booking_app/models/booking_model.dart';
+import 'package:booking_app/screens/add_edit_booking_screen.dart';
 import 'package:booking_app/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class BookingsListing extends StatefulWidget {
-  const BookingsListing({Key? key}) : super(key: key);
+  const BookingsListing({Key? key, this.signedInUser}) : super(key: key);
+
+  final GoogleSignInAccount? signedInUser;
 
   @override
   _BookingsListingState createState() => _BookingsListingState();
@@ -105,7 +109,17 @@ class _BookingsListingState extends State<BookingsListing> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AddEditBookingScreen(
+                        booking: booking,
+                        signedInUser: widget.signedInUser,
+                      ),
+                    ),
+                  );
+                },
                 icon: const Icon(Icons.edit),
               ),
               IconButton(
