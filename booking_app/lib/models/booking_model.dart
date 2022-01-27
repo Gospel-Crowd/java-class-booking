@@ -24,7 +24,7 @@ class Booking {
   Booking.fromJson(Map<String, dynamic>? json, String documentId)
       : this(
           userId: json?['userId'] as String,
-          userDisplayName: json?['userId'] as String,
+          userDisplayName: json?['userDisplayName'] as String,
           userMailId: json?['userMailId'] as String,
           date: DateTime.fromMicrosecondsSinceEpoch(
               (json?['date']! as Timestamp).microsecondsSinceEpoch),

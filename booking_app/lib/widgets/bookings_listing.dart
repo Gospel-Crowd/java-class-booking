@@ -8,9 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class BookingsListing extends StatefulWidget {
-  const BookingsListing({Key? key, this.signedInUser}) : super(key: key);
+  const BookingsListing({Key? key, this.signedInUser, this.readOnly = false})
+      : super(key: key);
 
   final GoogleSignInAccount? signedInUser;
+  final bool readOnly;
 
   @override
   _BookingsListingState createState() => _BookingsListingState();
@@ -97,6 +99,7 @@ class _BookingsListingState extends State<BookingsListing> {
   Widget _buildTimeDisplay(Booking booking) {
     return Expanded(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -106,32 +109,46 @@ class _BookingsListingState extends State<BookingsListing> {
             style: const TextStyle(fontSize: 20),
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AddEditBookingScreen(
-                        booking: booking,
-                        signedInUser: widget.signedInUser,
-                      ),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.edit),
+              Flexible(
+                child: Text(
+                  booking.userDisplayName,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              IconButton(
-                onPressed: () async {
-                  await _bookingRef.doc(booking.documentId).delete();
-                },
-                icon: const Icon(Icons.delete),
-              ),
+              widget.readOnly ? Container() : _buildButtonBar(booking),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildButtonBar(Booking booking) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        IconButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddEditBookingScreen(
+                  booking: booking,
+                  signedInUser: widget.signedInUser,
+                ),
+              ),
+            );
+          },
+          icon: const Icon(Icons.edit),
+        ),
+        IconButton(
+          onPressed: () async {
+            await _bookingRef.doc(booking.documentId).delete();
+          },
+          icon: const Icon(Icons.delete),
+        ),
+      ],
     );
   }
 

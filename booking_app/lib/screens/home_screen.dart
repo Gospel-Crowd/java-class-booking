@@ -127,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
         body: const TabBarView(
           children: [
             OpenHoursListing(),
-            BookingsListing(),
+            BookingsListing(readOnly: true),
           ],
         ),
         drawer: _buildDrawer(),
