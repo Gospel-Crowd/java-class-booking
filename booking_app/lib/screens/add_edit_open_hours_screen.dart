@@ -49,7 +49,7 @@ class _AddEditOpenHoursScreenState extends State<AddEditOpenHoursScreen> {
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Container(
-        height: 100,
+        height: 80,
         decoration: BoxDecoration(
           border: Border.all(
             color: primaryColor,
@@ -66,7 +66,7 @@ class _AddEditOpenHoursScreenState extends State<AddEditOpenHoursScreen> {
               _buildStartTimePicker(),
               const Text(
                 '-',
-                style: TextStyle(fontSize: 32),
+                style: TextStyle(fontSize: 24),
               ),
               _buildEndTimePicker(),
             ],
@@ -80,7 +80,7 @@ class _AddEditOpenHoursScreenState extends State<AddEditOpenHoursScreen> {
     return GestureDetector(
       child: Text(
         buildTimeDisplayString(_endTime),
-        style: const TextStyle(fontSize: 32),
+        style: const TextStyle(fontSize: 24),
       ),
       onTap: () async {
         final TimeOfDay? pickedEndTime = await showTimePicker(
@@ -101,7 +101,7 @@ class _AddEditOpenHoursScreenState extends State<AddEditOpenHoursScreen> {
     return GestureDetector(
       child: Text(
         buildTimeDisplayString(_startTime),
-        style: const TextStyle(fontSize: 32),
+        style: const TextStyle(fontSize: 24),
       ),
       onTap: () async {
         final TimeOfDay? pickedStartTime = await showTimePicker(
@@ -128,12 +128,12 @@ class _AddEditOpenHoursScreenState extends State<AddEditOpenHoursScreen> {
         children: [
           Text(
             buildDateDisplayString(_selectedDate),
-            style: const TextStyle(fontSize: 32),
+            style: const TextStyle(fontSize: 24),
           ),
           const SizedBox(height: 4),
           Text(
             buildDayDisplayStringEN(_selectedDate),
-            style: const TextStyle(fontSize: 24),
+            style: const TextStyle(fontSize: 16),
           ),
         ],
       ),

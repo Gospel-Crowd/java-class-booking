@@ -38,6 +38,8 @@ class _OpenHoursListingState extends State<OpenHoursListing> {
           return const Text("Loading");
         }
 
+        List<OpenHours> openHoursDataItems =
+            _convertToOpenHoursList(snapshot.data!.docs);
         List<Widget> widgets = [];
 
         widgets.add(const SizedBox(height: 8));
@@ -45,17 +47,16 @@ class _OpenHoursListingState extends State<OpenHoursListing> {
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Text(
             'OPEN HOURS',
-            style: TextStyle(fontSize: 20),
+            style: TextStyle(fontSize: 16),
           ),
         ));
-
-        List<OpenHours> openHoursDataItems =
-            _convertToOpenHoursList(snapshot.data!.docs);
 
         for (var item in openHoursDataItems) {
           widgets.add(_buildOpenHoursItem(item));
           widgets.add(const SizedBox(height: 8));
         }
+
+        widgets.add(const SizedBox(height: 80));
 
         return ListView(
           children: widgets,
@@ -122,7 +123,7 @@ class _OpenHoursListingState extends State<OpenHoursListing> {
             openHours.getStartTimeDisplayString() +
                 ' - ' +
                 openHours.getEndTimeDisplayString(),
-            style: const TextStyle(fontSize: 20),
+            style: const TextStyle(fontSize: 16),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -159,12 +160,12 @@ class _OpenHoursListingState extends State<OpenHoursListing> {
       children: [
         Text(
           openHours.getDateDisplayString(),
-          style: const TextStyle(fontSize: 28),
+          style: const TextStyle(fontSize: 20),
         ),
         const SizedBox(height: 4),
         Text(
           openHours.getDayDisplayString(),
-          style: const TextStyle(fontSize: 20),
+          style: const TextStyle(fontSize: 16),
         ),
       ],
     );

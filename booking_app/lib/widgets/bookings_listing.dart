@@ -19,20 +19,21 @@ class BookingsListing extends StatefulWidget {
 }
 
 class _BookingsListingState extends State<BookingsListing> {
-  final _bookingsStream = FirebaseFirestore.instance
-      .collection(bookingsCollection)
-      .withConverter<Booking>(
-        fromFirestore: (snapshot, _) =>
-            Booking.fromJson(snapshot.data()!, snapshot.id),
-        toFirestore: (booking, _) => booking.toJson(),
-      )
-      .snapshots();
-
   final CollectionReference _bookingRef =
       FirebaseFirestore.instance.collection(bookingsCollection);
 
   @override
   Widget build(BuildContext context) {
+    final _bookingsStream = FirebaseFirestore.instance
+        .collection(bookingsCollection)
+        .where('userMailId', isEqualTo: widget.signedInUser?.email)
+        .withConverter<Booking>(
+          fromFirestore: (snapshot, _) =>
+              Booking.fromJson(snapshot.data()!, snapshot.id),
+          toFirestore: (booking, _) => booking.toJson(),
+        )
+        .snapshots();
+
     return StreamBuilder<QuerySnapshot>(
       stream: _bookingsStream,
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
@@ -44,29 +45,30 @@ class _BookingsListingState extends State<BookingsListing> {
           return const Text("ローディング中");
         }
 
-        List<Widget> widgets = [];
-
-        widgets.add(const SizedBox(height: 8));
-        widgets.add(const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Text(
-            '予約済み',
-            style: TextStyle(fontSize: 20),
-          ),
-        ));
-
-        List<Booking> bookingDataItems =
-            _convertToBookingList(snapshot.data!.docs);
-
-        for (var item in bookingDataItems) {
-          widgets.add(_buildBookingItem(item));
-          widgets.add(const SizedBox(height: 8));
-        }
-
-        return ListView(
-          children: widgets,
-        );
+        return _buildBodyInternal(_convertToBookingList(snapshot.data!.docs));
       },
+    );
+  }
+
+  Widget _buildBodyInternal(List<Booking> bookingDataItems) {
+    List<Widget> widgets = [];
+
+    widgets.add(const SizedBox(height: 8));
+    widgets.add(const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Text(
+        '予約済み',
+        style: TextStyle(fontSize: 16),
+      ),
+    ));
+
+    for (var item in bookingDataItems) {
+      widgets.add(_buildBookingItem(item));
+      widgets.add(const SizedBox(height: 8));
+    }
+
+    return ListView(
+      children: widgets,
     );
   }
 
@@ -102,13 +104,15 @@ class _BookingsListingState extends State<BookingsListing> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          widget.readOnly ? Container() : const SizedBox(height: 12),
           Text(
             buildTimeDisplayString(booking.startTime) +
                 ' - ' +
                 buildTimeDisplayString(booking.endTime),
-            style: const TextStyle(fontSize: 20),
+            style: const TextStyle(fontSize: 16),
           ),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Flexible(
                 child: Text(
@@ -158,12 +162,12 @@ class _BookingsListingState extends State<BookingsListing> {
       children: [
         Text(
           buildDateDisplayString(booking.date, locale: const Locale('jp')),
-          style: const TextStyle(fontSize: 24),
+          style: const TextStyle(fontSize: 20),
         ),
         const SizedBox(height: 4),
         Text(
           buildDayDisplayStringJP(booking.date),
-          style: const TextStyle(fontSize: 20),
+          style: const TextStyle(fontSize: 16),
         ),
       ],
     );

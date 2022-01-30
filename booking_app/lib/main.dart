@@ -23,9 +23,6 @@ class BookingApp extends StatelessWidget {
       title: 'Booking App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        textTheme: Theme.of(context).textTheme.apply(
-              fontSizeDelta: 4.0,
-            ),
       ),
       home: const HomeScreen(),
     );

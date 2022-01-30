@@ -52,15 +52,21 @@ class _AddEditBookingScreenState extends State<AddEditBookingScreen> {
   void initState() {
     super.initState();
 
-    _selectedDate = DateTime.now();
-    _selectedStartTime = const TimeOfDay(hour: 9, minute: 0);
+    if (widget.booking.documentId != '') {
+      _selectedDate = widget.booking.date;
+      _selectedStartTime = widget.booking.startTime;
+    } else {
+      _selectedDate = DateTime.now();
+      _selectedStartTime = const TimeOfDay(hour: 9, minute: 0);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    var isEditMode = widget.booking.documentId != '';
     return Scaffold(
       appBar: AppBar(
-        title: const Text('新規予約'),
+        title: Text(isEditMode ? '予約変更' : '新規予約'),
         actions: [
           _buildDoneButton(context),
         ],
@@ -104,46 +110,40 @@ class _AddEditBookingScreenState extends State<AddEditBookingScreen> {
     );
   }
 
-  Widget _buildDoneButton(BuildContext context) {
+  Widget _buildDoneButton(BuildContext context, {bool isDisabled = false}) {
+    var booking = Booking(
+      userId: widget.signedInUser!.id,
+      userDisplayName: widget.signedInUser!.displayName!,
+      userMailId: widget.signedInUser!.email,
+      date: _selectedDate,
+      startTime: _selectedStartTime,
+      endTime: TimeOfDay(
+        hour: (_selectedStartTime.hour + 2) % 24,
+        minute: _selectedStartTime.minute,
+      ),
+    );
+
     return IconButton(
-      onPressed: () {
-        if (widget.booking.documentId == '') {
-          _bookingsRef
-              .add(Booking(
-                userId: widget.signedInUser!.id,
-                userDisplayName: widget.signedInUser!.displayName!,
-                userMailId: widget.signedInUser!.email,
-                date: _selectedDate,
-                startTime: _selectedStartTime,
-                endTime: TimeOfDay(
-                  hour: (_selectedStartTime.hour + 2) % 24,
-                  minute: _selectedStartTime.minute,
-                ),
-              ))
-              .then((value) => Navigator.pop(context))
-              .catchError((error) {
-            Navigator.pop(context);
-          });
-        } else {
-          _bookingsRef
-              .doc(widget.booking.documentId)
-              .set(Booking(
-                userId: widget.signedInUser!.id,
-                userDisplayName: widget.signedInUser!.displayName!,
-                userMailId: widget.signedInUser!.email,
-                date: _selectedDate,
-                startTime: _selectedStartTime,
-                endTime: TimeOfDay(
-                  hour: (_selectedStartTime.hour + 2) % 24,
-                  minute: _selectedStartTime.minute,
-                ),
-              ))
-              .then((value) => Navigator.pop(context))
-              .catchError((error) {
-            Navigator.pop(context);
-          });
-        }
-      },
+      onPressed: isDisabled
+          ? null
+          : () {
+              if (widget.booking.documentId == '') {
+                _bookingsRef
+                    .add(booking)
+                    .then((value) => Navigator.pop(context))
+                    .catchError((error) {
+                  Navigator.pop(context);
+                });
+              } else {
+                _bookingsRef
+                    .doc(widget.booking.documentId)
+                    .set(booking)
+                    .then((value) => Navigator.pop(context))
+                    .catchError((error) {
+                  Navigator.pop(context);
+                });
+              }
+            },
       icon: const Icon(Icons.done),
       iconSize: 32,
     );
@@ -247,7 +247,6 @@ class _AddEditBookingScreenState extends State<AddEditBookingScreen> {
         ),
         child: Text(
           buildTimeDisplayString(timeOfDay),
-          style: const TextStyle(fontSize: 16),
         ),
       ),
     );
@@ -258,7 +257,6 @@ class _AddEditBookingScreenState extends State<AddEditBookingScreen> {
       ohdItem.getDateDisplayString(locale: jpLocale) +
           ' ' +
           ohdItem.getDayDisplayString(locale: jpLocale),
-      style: const TextStyle(fontSize: 24),
     );
   }
 
