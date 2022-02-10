@@ -20,3 +20,4 @@ doc/api/
 *.js.deps
 *.js.map
 booking_app/ios/Runner/GoogleService-Info.plist
+booking_app/android/app/google-services.json
