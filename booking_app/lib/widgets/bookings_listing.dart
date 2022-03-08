@@ -27,6 +27,10 @@ class _BookingsListingState extends State<BookingsListing> {
     final _bookingsStream = FirebaseFirestore.instance
         .collection(bookingsCollection)
         .where('userMailId', isEqualTo: widget.signedInUser?.email)
+        .where(
+          'date',
+          isGreaterThan: DateTime.now().subtract(const Duration(days: 1)),
+        )
         .withConverter<Booking>(
           fromFirestore: (snapshot, _) =>
               Booking.fromJson(snapshot.data()!, snapshot.id),

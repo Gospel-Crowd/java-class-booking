@@ -24,6 +24,10 @@ class _AddEditBookingScreenState extends State<AddEditBookingScreen> {
 
   final _openHoursStream = FirebaseFirestore.instance
       .collection(openHoursCollection)
+      .where(
+        'date',
+        isGreaterThan: DateTime.now().subtract(const Duration(days: 1)),
+      )
       .withConverter<OpenHours>(
         fromFirestore: (snapshot, _) =>
             OpenHours.fromJson(snapshot.data()!, snapshot.id),
@@ -169,7 +173,16 @@ class _AddEditBookingScreenState extends State<AddEditBookingScreen> {
     );
   }
 
-  bool isConflict(DateTime date, int startMinutes, List<Booking> bookings) {
+  bool isEligible(DateTime date, int startMinutes, List<Booking> bookings) {
+    if (date
+            .add(Duration(
+              minutes: startMinutes,
+            ))
+            .compareTo(DateTime.now()) <
+        0) {
+      return false;
+    }
+
     int numberOfConflicts = 0;
     int endMinutes = startMinutes + 120;
 
@@ -183,7 +196,7 @@ class _AddEditBookingScreenState extends State<AddEditBookingScreen> {
       }
     }
 
-    return numberOfConflicts >= 3;
+    return numberOfConflicts < 3;
   }
 
   List<Widget> _buildOpenTimeSlotGrid(
@@ -195,7 +208,7 @@ class _AddEditBookingScreenState extends State<AddEditBookingScreen> {
     for (int minutes = _convertToTotalMinutes(openHours.startTime);
         minutes + 120 <= _convertToTotalMinutes(openHours.endTime);
         minutes = minutes + 30) {
-      if (!isConflict(
+      if (isEligible(
         openHours.date,
         minutes,
         bookingDataItems,

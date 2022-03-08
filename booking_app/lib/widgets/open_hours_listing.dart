@@ -15,6 +15,10 @@ class OpenHoursListing extends StatefulWidget {
 class _OpenHoursListingState extends State<OpenHoursListing> {
   final _openHoursStream = FirebaseFirestore.instance
       .collection(openHoursCollection)
+      .where(
+        'date',
+        isGreaterThan: DateTime.now().subtract(const Duration(days: 1)),
+      )
       .withConverter<OpenHours>(
         fromFirestore: (snapshot, _) =>
             OpenHours.fromJson(snapshot.data()!, snapshot.id),
