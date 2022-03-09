@@ -1,17 +1,17 @@
 import 'package:booking_app/colors.dart';
 import 'package:booking_app/database.dart';
 import 'package:booking_app/models/booking_model.dart';
+import 'package:booking_app/models/user_model.dart';
 import 'package:booking_app/screens/add_edit_booking_screen.dart';
 import 'package:booking_app/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 class BookingsListing extends StatefulWidget {
-  const BookingsListing({Key? key, this.signedInUser, this.readOnly = false})
+  const BookingsListing({Key? key, this.userModel, this.readOnly = false})
       : super(key: key);
 
-  final GoogleSignInAccount? signedInUser;
+  final UserModel? userModel;
   final bool readOnly;
 
   @override
@@ -26,7 +26,7 @@ class _BookingsListingState extends State<BookingsListing> {
   Widget build(BuildContext context) {
     final _bookingsStream = FirebaseFirestore.instance
         .collection(bookingsCollection)
-        .where('userMailId', isEqualTo: widget.signedInUser?.email)
+        .where('userMailId', isEqualTo: widget.userModel?.email)
         .where(
           'date',
           isGreaterThan: DateTime.now().subtract(const Duration(days: 1)),
@@ -143,7 +143,7 @@ class _BookingsListingState extends State<BookingsListing> {
               MaterialPageRoute(
                 builder: (context) => AddEditBookingScreen(
                   booking: booking,
-                  signedInUser: widget.signedInUser,
+                  userModel: widget.userModel,
                 ),
               ),
             );

@@ -1,12 +1,15 @@
 import 'package:booking_app/main.dart';
 import 'package:booking_app/models/booking_model.dart';
 import 'package:booking_app/models/open_hours_model.dart';
+import 'package:booking_app/models/user_model.dart';
 import 'package:booking_app/screens/add_edit_booking_screen.dart';
 import 'package:booking_app/screens/add_edit_open_hours_screen.dart';
 import 'package:booking_app/widgets/bookings_listing.dart';
 import 'package:booking_app/widgets/open_hours_listing.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:the_apple_sign_in/the_apple_sign_in.dart' as apple_sign_in;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -16,6 +19,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late UserModel _signedInUser;
+  bool _signedIn = false;
+
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: <String>[
       'email',
@@ -23,27 +29,27 @@ class _HomeScreenState extends State<HomeScreen> {
     ],
   );
 
-  GoogleSignInAccount? _currentUser;
-
-  Future<void> _handleSignIn() async {
-    try {
-      await _googleSignIn.signIn();
-    } catch (error) {
-      print(error);
-    }
+  Future<void> _handleGoogleSignOut() async {
+    await _googleSignIn.disconnect();
+    setState(() {
+      _signedIn = false;
+    });
   }
-
-  Future<void> _handleSignOut() async => await _googleSignIn.disconnect();
 
   @override
   void initState() {
     super.initState();
     _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount? account) {
       setState(() {
-        _currentUser = account;
+        _signedInUser = UserModel(
+          id: account!.id,
+          displayName: account.displayName!,
+          email: account.email,
+          accountType: AccountType.google,
+        );
 
         // Mark the user as admin if the user email is samuel.anudeep@gmail.com
-        isAdmin = account?.id == '104008690092105020153';
+        isAdmin = account.id == '104008690092105020153';
       });
     });
     _googleSignIn.signInSilently();
@@ -51,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _currentUser != null ? _buildHomeView() : _buildLoginView();
+    return _signedIn ? _buildHomeView() : _buildLoginView();
   }
 
   Widget _buildHomeView() {
@@ -61,26 +67,26 @@ class _HomeScreenState extends State<HomeScreen> {
             appBar: AppBar(
               title: const Text('ホーム'),
             ),
-            body: BookingsListing(signedInUser: _currentUser),
+            body: BookingsListing(userModel: _signedInUser),
             drawer: _buildDrawer(),
             floatingActionButton: IconButton(
               icon: const Icon(Icons.add_circle),
               iconSize: 60,
               onPressed: () {
-                if (_currentUser != null) {}
+                if (_signedIn) {}
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => AddEditBookingScreen(
                       booking: Booking(
-                        userId: _currentUser!.id,
-                        userDisplayName: _currentUser!.displayName!,
-                        userMailId: _currentUser!.email,
+                        userId: _signedInUser.id,
+                        userDisplayName: _signedInUser.displayName,
+                        userMailId: _signedInUser.email,
                         date: DateTime.now(),
                         startTime: const TimeOfDay(hour: 9, minute: 0),
                         endTime: const TimeOfDay(hour: 11, minute: 0),
                       ),
-                      signedInUser: _currentUser,
+                      userModel: _signedInUser,
                     ),
                   ),
                 );
@@ -98,13 +104,13 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.blue,
             ),
             child: Text(
-              _currentUser!.email,
+              _signedInUser.email,
               style: const TextStyle(color: Colors.white),
             ),
           ),
           ListTile(
             title: const Text('ログアウト'),
-            onTap: _handleSignOut,
+            onTap: _handleGoogleSignOut,
           ),
         ],
       ),
@@ -160,11 +166,79 @@ class _HomeScreenState extends State<HomeScreen> {
   Scaffold _buildLoginView() {
     return Scaffold(
       body: Center(
-        child: ElevatedButton(
-          child: const Text('SIGN IN'),
-          onPressed: _handleSignIn,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              height: 50,
+              width: 200,
+              child: ElevatedButton(
+                child: const Text(
+                  'Googleでログイン',
+                  style: TextStyle(fontSize: 20),
+                ),
+                onPressed: () async {
+                  await _googleSignIn.signIn();
+                  setState(() {
+                    _signedIn = true;
+                  });
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 50,
+              width: 200,
+              child: apple_sign_in.AppleSignInButton(
+                type: apple_sign_in.ButtonType.continueButton,
+                style: apple_sign_in.ButtonStyle.black,
+                buttonText: 'Appleでログイン',
+                onPressed: _signInWithApple,
+                //cornerRadius: 20,
+              ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  void _signInWithApple() async {
+    final apple_sign_in.AuthorizationResult result =
+        await apple_sign_in.TheAppleSignIn.performRequests([
+      const apple_sign_in.AppleIdRequest(requestedScopes: [
+        apple_sign_in.Scope.email,
+        apple_sign_in.Scope.fullName,
+      ])
+    ]);
+
+    if (result.status == apple_sign_in.AuthorizationStatus.authorized) {
+      final apple_sign_in.AppleIdCredential appleIdCredential =
+          result.credential!;
+
+      OAuthProvider oAuthProvider = OAuthProvider('apple.com');
+      final AuthCredential credential = oAuthProvider.credential(
+        idToken: String.fromCharCodes(appleIdCredential.identityToken!),
+        accessToken: String.fromCharCodes(appleIdCredential.authorizationCode!),
+      );
+
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+      final firebaseUser = userCredential.user!;
+
+      assert(!firebaseUser.isAnonymous);
+      assert(firebaseUser.uid == FirebaseAuth.instance.currentUser!.uid);
+
+      setState(() {
+        _signedInUser = UserModel(
+          id: firebaseUser.uid,
+          displayName: firebaseUser.displayName ?? firebaseUser.email!,
+          email: firebaseUser.email!,
+          accountType: AccountType.apple,
+        );
+
+        _signedIn = true;
+      });
+    }
   }
 }

@@ -2,18 +2,18 @@ import 'package:booking_app/colors.dart';
 import 'package:booking_app/database.dart';
 import 'package:booking_app/models/booking_model.dart';
 import 'package:booking_app/models/open_hours_model.dart';
+import 'package:booking_app/models/user_model.dart';
 import 'package:booking_app/utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 class AddEditBookingScreen extends StatefulWidget {
   const AddEditBookingScreen(
-      {Key? key, required this.booking, required this.signedInUser})
+      {Key? key, required this.booking, required this.userModel})
       : super(key: key);
 
   final Booking booking;
-  final GoogleSignInAccount? signedInUser;
+  final UserModel? userModel;
 
   @override
   _AddEditBookingScreenState createState() => _AddEditBookingScreenState();
@@ -116,9 +116,9 @@ class _AddEditBookingScreenState extends State<AddEditBookingScreen> {
 
   Widget _buildDoneButton(BuildContext context, {bool isDisabled = false}) {
     var booking = Booking(
-      userId: widget.signedInUser!.id,
-      userDisplayName: widget.signedInUser!.displayName!,
-      userMailId: widget.signedInUser!.email,
+      userId: widget.userModel!.id,
+      userDisplayName: widget.userModel!.displayName,
+      userMailId: widget.userModel!.email,
       date: _selectedDate,
       startTime: _selectedStartTime,
       endTime: TimeOfDay(
