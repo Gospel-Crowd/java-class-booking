@@ -240,6 +240,8 @@ class _AddEditBookingScreenState extends State<AddEditBookingScreen> {
   }
 
   Widget _buildOpenTimeSlot(DateTime date, TimeOfDay timeOfDay) {
+    bool thisItemSelected =
+        _selectedDate == date && _selectedStartTime == timeOfDay;
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -250,9 +252,7 @@ class _AddEditBookingScreenState extends State<AddEditBookingScreen> {
       child: Container(
         alignment: AlignmentDirectional.center,
         decoration: BoxDecoration(
-          color: _selectedDate == date && _selectedStartTime == timeOfDay
-              ? primaryColor
-              : null,
+          color: thisItemSelected ? primaryColor : null,
           border: Border.all(
             color: primaryColor,
           ),
@@ -260,6 +260,9 @@ class _AddEditBookingScreenState extends State<AddEditBookingScreen> {
         ),
         child: Text(
           buildTimeDisplayString(timeOfDay),
+          style: TextStyle(
+            color: thisItemSelected ? Colors.white : Colors.black,
+          ),
         ),
       ),
     );

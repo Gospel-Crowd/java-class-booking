@@ -44,7 +44,7 @@ dependencies:
   firebase_auth: ^3.3.8
 
 flutter_icons:
-  image_path: "assets/images/launcher_icon.png"
+  image_path: "assets/images/launcher_icon.jpg"
   android: true
   ios: true
 
@@ -74,6 +74,9 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+
+  assets:
+      - assets/images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

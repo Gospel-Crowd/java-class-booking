@@ -145,16 +145,38 @@ class _OpenHoursListingState extends State<OpenHoursListing> {
                 },
                 icon: const Icon(Icons.edit),
               ),
-              IconButton(
-                onPressed: () async {
-                  await _openHoursRef.doc(openHours.documentId).delete();
-                },
-                icon: const Icon(Icons.delete),
-              ),
+              _buildDeleteButton(openHours),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDeleteButton(OpenHours openHours) {
+    return IconButton(
+      onPressed: () => showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: const Text('Confirm Delete'),
+          content:
+              const Text('Do you really want to delete this Open Hours item?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _openHoursRef.doc(openHours.documentId).delete();
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      ),
+      icon: const Icon(Icons.delete),
     );
   }
 

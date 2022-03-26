@@ -58,11 +58,13 @@ class _BookingsListingState extends State<BookingsListing> {
     List<Widget> widgets = [];
 
     widgets.add(const SizedBox(height: 8));
-    widgets.add(const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    widgets.add(Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Text(
-        '予約済み',
-        style: TextStyle(fontSize: 16),
+        bookingDataItems.isEmpty
+            ? 'まだ予約されておりません。\n右下のボタンを押して予約を作成して下さい。'
+            : '予約済み',
+        style: const TextStyle(fontSize: 16),
       ),
     ));
 
@@ -150,13 +152,34 @@ class _BookingsListingState extends State<BookingsListing> {
           },
           icon: const Icon(Icons.edit),
         ),
-        IconButton(
-          onPressed: () async {
-            await _bookingRef.doc(booking.documentId).delete();
-          },
-          icon: const Icon(Icons.delete),
-        ),
+        _buildDeleteButton(booking),
       ],
+    );
+  }
+
+  Widget _buildDeleteButton(Booking booking) {
+    return IconButton(
+      onPressed: () => showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: const Text('削除してよろしいですか？'),
+          content: const Text('この操作は取り消しできません。'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('キャンセル'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _bookingRef.doc(booking.documentId).delete();
+              },
+              child: const Text('削除'),
+            ),
+          ],
+        ),
+      ),
+      icon: const Icon(Icons.delete),
     );
   }
 

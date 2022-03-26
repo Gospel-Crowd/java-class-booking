@@ -1,3 +1,4 @@
+import 'package:booking_app/colors.dart';
 import 'package:booking_app/main.dart';
 import 'package:booking_app/models/booking_model.dart';
 import 'package:booking_app/models/open_hours_model.dart';
@@ -25,15 +26,40 @@ class _HomeScreenState extends State<HomeScreen> {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: <String>[
       'email',
-      'https://www.googleapis.com/auth/contacts.readonly',
     ],
   );
 
-  Future<void> _handleGoogleSignOut() async {
-    await _googleSignIn.disconnect();
-    setState(() {
-      _signedIn = false;
-    });
+  Future<void> _handleSignOut() async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text('ログアウト'),
+        content: const Text('ログアウトします。よろしいですか？'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+
+              switch (_signedInUser.accountType) {
+                case AccountType.google:
+                  await _googleSignIn.disconnect();
+                  break;
+                default:
+              }
+
+              setState(() {
+                _signedIn = false;
+              });
+            },
+            child: const Text('ログアウト'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -101,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           DrawerHeader(
             decoration: const BoxDecoration(
-              color: Colors.blue,
+              color: primaryColor,
             ),
             child: Text(
               _signedInUser.email,
@@ -110,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           ListTile(
             title: const Text('ログアウト'),
-            onTap: _handleGoogleSignOut,
+            onTap: _handleSignOut,
           ),
         ],
       ),
@@ -170,35 +196,54 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
-              height: 50,
-              width: 200,
-              child: ElevatedButton(
-                child: const Text(
-                  'Googleでログイン',
-                  style: TextStyle(fontSize: 20),
-                ),
-                onPressed: () async {
-                  await _googleSignIn.signIn();
-                  setState(() {
-                    _signedIn = true;
-                  });
-                },
-              ),
+              width: 120,
+              height: 120,
+              child: Image.asset('assets/images/launcher_icon.png'),
             ),
+            const SizedBox(height: 20),
+            const Text(
+              'OASIS TOKYO\nCODING STUDIO',
+              style: TextStyle(fontSize: 28),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 80),
+            _buildGoogleLoginButton(),
             const SizedBox(height: 16),
-            SizedBox(
-              height: 50,
-              width: 200,
-              child: apple_sign_in.AppleSignInButton(
-                type: apple_sign_in.ButtonType.continueButton,
-                style: apple_sign_in.ButtonStyle.black,
-                buttonText: 'Appleでログイン',
-                onPressed: _signInWithApple,
-                //cornerRadius: 20,
-              ),
-            ),
+            _buildAppleLoginButton(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildAppleLoginButton() {
+    return SizedBox(
+      height: 50,
+      width: 220,
+      child: apple_sign_in.AppleSignInButton(
+        type: apple_sign_in.ButtonType.continueButton,
+        style: apple_sign_in.ButtonStyle.black,
+        buttonText: 'Appleでログイン',
+        onPressed: _signInWithApple,
+      ),
+    );
+  }
+
+  Widget _buildGoogleLoginButton() {
+    return SizedBox(
+      height: 50,
+      width: 220,
+      child: ElevatedButton(
+        child: const Text(
+          'Googleでログイン',
+          style: TextStyle(fontSize: 20),
+        ),
+        onPressed: () async {
+          var signInResult = await _googleSignIn.signIn();
+          setState(() {
+            _signedIn = signInResult != null;
+          });
+        },
       ),
     );
   }
